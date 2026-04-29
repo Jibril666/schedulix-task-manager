@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Schedulix ✏️</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Indie+Flower&family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+/* ─── RESET ─────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+button,input,select{font-family:inherit}
+
+/* ─── PAPER TEXTURE BACKGROUND ─────────────────────────── */
+:root{
+  --cream:#fdf8f0;
+  --cream2:#f9f3e3;
+  --ink:#2c2416;
+  --ink-light:#6b5c44;
+  --yellow:#fff176;
+  --yellow2:#ffe082;
+  --pink:#ffd6e0;
+  --mint:#c8f7c5;
+  --blue:#d0e8ff;
+  --lavender:#e8d5ff;
+  --orange:#ffe5c8;
+  --red-pen:#c0392b;
+  --pencil:#7d6e5a;
+}
+
+body{
+  font-family:'Patrick Hand',cursive;
+  background-color:#e8dfc8;
+  /* Paper grain texture via SVG data URI */
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E"),
+    repeating-linear-gradient(0deg,transparent,transparent 27px,rgba(180,160,120,0.12) 28px);
+  min-height:100vh;
+  padding:40px 20px 80px;
+  color:var(--ink);
+  cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z' fill='%232c2416'/%3E%3C/svg%3E") 0 24, auto;
+}
+
+/* ─── MAIN CONTAINER ────────────────────────────────────── */
+.notebook{
+  max-width:780px;
+  margin:0 auto;
+  position:relative;
+}
+
+/* ─── HEADER ────────────────────────────────────────────── */
+header{
+  text-align:center;
+  margin-bottom:36px;
+  position:relative;
+  animation:dropIn .7s cubic-bezier(.34,1.56,.64,1) both;
+}
+
+@keyframes dropIn{from{opacity:0;transform:translateY(-30px) rotate(-2deg)}to{opacity:1;transform:none}}
+
+.brand-tape{
+  display:inline-block;
+  position:relative;
+}
+
+/* Washi tape strips on logo */
+.brand-tape::before,.brand-tape::after{
+  content:'';
+  position:absolute;
+  height:22px;
+  width:60px;
+  background:rgba(255,224,130,0.75);
+  border:1px solid rgba(200,170,80,0.4);
+  top:-8px;
+  z-index:2;
+}
+.brand-tape::before{left:-20px;transform:rotate(-6deg)}
+.brand-tape::after{right:-20px;transform:rotate(5deg)}
+
+h1{
+  font-family:'Caveat',cursive;
+  font-size:clamp(3rem,8vw,5.5rem);
+  font-weight:700;
+  color:var(--ink);
+  line-height:1;
+  letter-spacing:-1px;
+  position:relative;
+  z-index:1;
+  /* Hand-drawn underline via SVG */
+  text-shadow:3px 3px 0 rgba(0,0,0,0.06);
+}
+
+.h1-deco{
+  position:absolute;
+  bottom:-6px;left:50%;
+  transform:translateX(-50%);
+  width:220px;
+}
+
+.subtitle{
+  font-family:'Indie Flower',cursive;
+  font-size:1.15rem;
+  color:var(--ink-light);
+  margin-top:14px;
+  letter-spacing:.02em;
+}
+
+/* scattered doodles around header */
+.doodle-star{
+  position:absolute;
+  font-size:1.6rem;
+  animation:wobble 3s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes wobble{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+
+/* ─── MAIN GRID ─────────────────────────────────────────── */
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:28px;
+  align-items:start;
+}
+@media(max-width:620px){.grid{grid-template-columns:1fr}}
+
+/* ─── PAPER CARD BASE ───────────────────────────────────── */
+.paper-card{
+  background:var(--cream);
+  border-radius:3px;
+  padding:24px 22px 26px;
+  position:relative;
+  /* Rough paper shadow */
+  box-shadow:
+    2px 2px 0 rgba(0,0,0,.04),
+    4px 5px 0 rgba(0,0,0,.04),
+    6px 8px 0 rgba(0,0,0,.03),
+    0 12px 24px rgba(0,0,0,.10);
+  /* Slightly uneven edges via clip-path */
+  clip-path:polygon(
+    0% 0.3%,0.4% 0%,99.6% 0.2%,100% 0%,
+    100% 99.7%,99.5% 100%,0.3% 99.8%,0% 100%
+  );
+  transition:transform .25s cubic-bezier(.34,1.56,.64,1), box-shadow .25s ease;
+  animation:slideUp .6s cubic-bezier(.34,1.56,.64,1) both;
+}
+
+.paper-card:hover{
+  transform:translateY(-6px) rotate(.4deg);
+  box-shadow:
+    2px 2px 0 rgba(0,0,0,.04),
+    4px 5px 0 rgba(0,0,0,.04),
+    8px 14px 0 rgba(0,0,0,.04),
+    0 22px 36px rgba(0,0,0,.14);
+}
+
+@keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+
+/* pin at top of card */
+.paper-card::before{
+  content:'📌';
+  position:absolute;
+  top:-14px;left:50%;
+  transform:translateX(-50%);
+  font-size:1.4rem;
+  filter:drop-shadow(0 2px 2px rgba(0,0,0,.2));
+}
+
+/* ─── FORM CARD ─────────────────────────────────────────── */
+.form-card{
+  background:var(--yellow);
+  grid-column:1;
+}
+
+.form-card::before{content:'📌'}
+
+.form-title{
+  font-family:'Caveat',cursive;
+  font-size:1.7rem;
+  font-weight:700;
+  color:var(--ink);
+  margin-bottom:18px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.field{margin-bottom:16px}
+
+.field label{
+  display:block;
+  font-family:'Indie Flower',cursive;
+  font-size:.95rem;
+  color:var(--ink-light);
+  margin-bottom:5px;
+  padding-left:2px;
+}
+
+/* Hand-drawn input */
+.field input,.field select{
+  width:100%;
+  background:transparent;
+  border:none;
+  border-bottom:2.5px solid var(--ink);
+  border-bottom-style:dashed;
+  border-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='4'%3E%3Cpath d='M0 3 Q4 0 8 3 Q12 6 16 3' stroke='%232c2416' stroke-width='1.5' fill='none'/%3E%3C/svg%3E")
+    1 round;
+  border-image-width:0 0 2px 0;
+  padding:6px 4px;
+  font-family:'Patrick Hand',cursive;
+  font-size:1rem;
+  color:var(--ink);
+  outline:none;
+  border-radius:0;
+  transition:border-color .2s;
+}
+
+.field input:focus,.field select:focus{
+  border-color:var(--red-pen);
+  border-image:none;
+  border-bottom:2.5px solid var(--red-pen);
+}
+
+.field input::placeholder{color:#b0a080;font-style:italic}
+
+.field select{
+  appearance:none;
+  cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9'%3E%3Cpath d='M1 1l6 7 6-7' stroke='%232c2416' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 4px center;
+  padding-right:24px;
+}
+
+.field select option{background:#fffef5;color:var(--ink)}
+
+/* Priority color swatches */
+.field select.prio-low{color:#2d6a4f}
+.field select.prio-medium{color:#b07d00}
+.field select.prio-high{color:#c0392b}
+
+.btn-add{
+  width:100%;
+  margin-top:6px;
+  padding:12px 16px;
+  background:var(--ink);
+  color:var(--cream);
+  border:none;
+  border-radius:4px;
+  font-family:'Caveat',cursive;
+  font-size:1.4rem;
+  font-weight:700;
+  letter-spacing:.04em;
+  cursor:pointer;
+  position:relative;
+  overflow:hidden;
+  /* Rough edges */
+  clip-path:polygon(
+    0% 1%,1% 0%,99% 0.5%,100% 0%,
+    100% 99%,99% 100%,1% 99.5%,0% 100%
+  );
+  transition:transform .15s ease,box-shadow .15s ease;
+  box-shadow:3px 3px 0 rgba(0,0,0,.25);
+}
+
+.btn-add::after{
+  content:'✏️';
+  position:absolute;
+  right:14px;top:50%;
+  transform:translateY(-50%);
+  font-size:1.1rem;
+}
+
+.btn-add:hover{
+  transform:translate(-1px,-2px);
+  box-shadow:5px 5px 0 rgba(0,0,0,.25);
+}
+.btn-add:active{transform:translate(1px,1px);box-shadow:1px 1px 0 rgba(0,0,0,.2)}
+
+/* ─── STATUS TOAST ──────────────────────────────────────── */
+.toast{
+  font-family:'Indie Flower',cursive;
+  font-size:1rem;
+  margin-top:10px;
+  padding:8px 12px;
+  border-radius:3px;
+  display:none;
+  position:relative;
+  animation:shake .4s ease;
+}
+.toast.ok{background:var(--mint);color:#145a32;border:1.5px dashed #1a7a3d;display:block}
+.toast.err{background:var(--pink);color:#7b241c;border:1.5px dashed #c0392b;display:block}
+@keyframes shake{0%,100%{transform:rotate(0)}25%{transform:rotate(-.8deg)}75%{transform:rotate(.8deg)}}
+
+/* ─── LIST PANEL ─────────────────────────────────────────── */
+.list-panel{
+  grid-column:2;
+  background:var(--cream2);
+  animation-delay:.15s;
+}
+@media(max-width:620px){.list-panel{grid-column:1}}
+
+.list-header{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:16px;
+}
+
+.list-title{
+  font-family:'Caveat',cursive;
+  font-size:1.7rem;
+  font-weight:700;
+}
+
+.count-bubble{
+  font-family:'Caveat',cursive;
+  font-size:1rem;
+  font-weight:700;
+  background:var(--ink);
+  color:var(--cream);
+  width:28px;height:28px;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:2px 2px 0 rgba(0,0,0,.2);
+  flex-shrink:0;
+}
+
+/* ─── TASK CARDS ─────────────────────────────────────────── */
+#taskList{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  max-height:480px;
+  overflow-y:auto;
+  padding-right:4px;
+}
+
+#taskList::-webkit-scrollbar{width:5px}
+#taskList::-webkit-scrollbar-track{background:transparent}
+#taskList::-webkit-scrollbar-thumb{background:var(--ink-light);border-radius:3px}
+
+.task-sticky{
+  border-radius:2px;
+  padding:12px 14px;
+  position:relative;
+  clip-path:polygon(
+    0% 0.5%,0.5% 0%,99.5% 0.3%,100% 0%,
+    100% 99.5%,99.5% 100%,0.3% 99.8%,0% 100%
+  );
+  box-shadow:2px 3px 0 rgba(0,0,0,.08),0 6px 16px rgba(0,0,0,.10);
+  transition:transform .25s cubic-bezier(.34,1.56,.64,1),box-shadow .2s ease,opacity .2s;
+  animation:stickyIn .4s cubic-bezier(.34,1.56,.64,1) both;
+  cursor:default;
+}
+
+@keyframes stickyIn{from{opacity:0;transform:scale(.92) rotate(-1deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+
+.task-sticky:hover{
+  transform:translateY(-4px) rotate(.3deg) scale(1.02);
+  box-shadow:3px 6px 0 rgba(0,0,0,.08),0 14px 28px rgba(0,0,0,.14);
+  z-index:10;
+}
+
+.task-sticky.done{opacity:.45}
+.task-sticky.done .t-name{text-decoration:line-through;text-decoration-thickness:2px}
+
+/* Colour variants by priority */
+.task-sticky.high{background:var(--pink)}
+.task-sticky.medium{background:var(--yellow2)}
+.task-sticky.low{background:var(--mint)}
+
+/* Torn top edge effect */
+.task-sticky::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;height:6px;
+  background:inherit;
+  clip-path:polygon(
+    0% 100%,1% 40%,3% 80%,5% 20%,7% 70%,9% 30%,11% 60%,13% 10%,15% 50%,
+    17% 0%,19% 40%,21% 80%,23% 30%,25% 60%,27% 20%,29% 70%,31% 40%,
+    33% 0%,35% 50%,37% 90%,39% 30%,41% 70%,43% 10%,45% 60%,47% 30%,
+    49% 80%,51% 20%,53% 60%,55% 40%,57% 0%,59% 50%,61% 80%,63% 30%,
+    65% 60%,67% 10%,69% 70%,71% 40%,73% 80%,75% 20%,77% 60%,79% 0%,
+    81% 50%,83% 30%,85% 70%,87% 20%,89% 60%,91% 40%,93% 0%,95% 50%,
+    97% 80%,99% 30%,100% 100%
+  );
+  filter:brightness(.94);
+}
+
+.task-top{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:8px;
+}
+
+.t-name{
+  font-family:'Caveat',cursive;
+  font-size:1.2rem;
+  font-weight:600;
+  color:var(--ink);
+  line-height:1.3;
+  flex:1;
+}
+
+.task-actions{display:flex;gap:4px;flex-shrink:0}
+
+.btn-sm{
+  width:26px;height:26px;
+  border:1.5px solid var(--ink);
+  border-radius:50%;
+  background:rgba(255,255,255,.5);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.85rem;
+  cursor:pointer;
+  transition:transform .2s,background .15s;
+  box-shadow:1px 1px 0 rgba(0,0,0,.15);
+}
+.btn-sm:hover{transform:scale(1.2);background:rgba(255,255,255,.8)}
+
+.task-meta{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:8px;
+  flex-wrap:wrap;
+}
+
+.meta-date{
+  font-family:'Patrick Hand',cursive;
+  font-size:.8rem;
+  color:var(--pencil);
+  display:flex;align-items:center;gap:3px;
+}
+
+.prio-tag{
+  font-family:'Indie Flower',cursive;
+  font-size:.72rem;
+  padding:1px 8px;
+  border-radius:20px;
+  border:1.5px solid currentColor;
+  font-weight:600;
+  letter-spacing:.03em;
+}
+.prio-tag.high{color:#922b21;background:rgba(255,255,255,.4)}
+.prio-tag.medium{color:#876605;background:rgba(255,255,255,.4)}
+.prio-tag.low{color:#1d6a47;background:rgba(255,255,255,.4)}
+
+.overdue{
+  font-family:'Patrick Hand',cursive;
+  font-size:.72rem;
+  color:#c0392b;
+  background:rgba(255,255,255,.5);
+  border:1px solid #c0392b;
+  border-radius:20px;
+  padding:1px 7px;
+}
+
+.done-tag{
+  font-family:'Patrick Hand',cursive;
+  font-size:.72rem;
+  color:#145a32;
+  background:rgba(255,255,255,.5);
+  border:1px solid #145a32;
+  border-radius:20px;
+  padding:1px 7px;
+}
+
+/* ─── EMPTY STATE ───────────────────────────────────────── */
+.empty{
+  text-align:center;
+  padding:32px 16px;
+  font-family:'Indie Flower',cursive;
+  font-size:1.05rem;
+  color:var(--ink-light);
+  line-height:1.8;
+}
+
+/* ─── FOOTER DOODLE BAR ─────────────────────────────────── */
+.doodle-bar{
+  text-align:center;
+  margin-top:40px;
+  font-family:'Indie Flower',cursive;
+  font-size:.85rem;
+  color:var(--pencil);
+  opacity:.7;
+  animation:fadeIn 1s ease both 1s;
+}
+
+@keyframes fadeIn{from{opacity:0}to{opacity:.7}}
+
+/* ─── DECORATIVE SVG DOODLES (fixed position) ───────────── */
+.bg-doodle{
+  position:fixed;
+  pointer-events:none;
+  opacity:.18;
+  z-index:0;
+}
+
+/* ─── NOTEBOOK RINGS (left side) ───────────────────────── */
+.rings{
+  position:fixed;
+  left:0;top:50%;
+  transform:translateY(-50%);
+  display:flex;
+  flex-direction:column;
+  gap:32px;
+  padding:20px 0;
+  z-index:100;
+}
+
+.ring{
+  width:22px;height:22px;
+  border:3px solid #a89070;
+  border-radius:50%;
+  background:linear-gradient(135deg,#c8a87a,#a89070);
+  box-shadow:1px 1px 3px rgba(0,0,0,.2);
+  margin-left:8px;
+}
+
+@media(max-width:500px){.rings{display:none}}
+</style>
+</head>
+<body>
+
+<!-- BG DOODLES -->
+<svg class="bg-doodle" style="top:5%;right:2%;width:120px" viewBox="0 0 120 120">
+  <path d="M60 10 L65 45 L100 50 L65 55 L60 90 L55 55 L20 50 L55 45 Z" fill="none" stroke="#7d6e5a" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M60 20 L63 43 L86 46 L63 49 L60 72 L57 49 L34 46 L57 43 Z" fill="#f9ca24" stroke="#7d6e5a" stroke-width="1.5"/>
+</svg>
+
+<svg class="bg-doodle" style="bottom:8%;left:3%;width:90px" viewBox="0 0 90 90">
+  <circle cx="45" cy="45" r="30" fill="none" stroke="#7d6e5a" stroke-width="2" stroke-dasharray="5 4"/>
+  <circle cx="45" cy="45" r="18" fill="none" stroke="#7d6e5a" stroke-width="1.5" stroke-dasharray="3 5"/>
+  <circle cx="45" cy="45" r="6" fill="#ff6b6b" stroke="#7d6e5a" stroke-width="1"/>
+</svg>
+
+<svg class="bg-doodle" style="top:30%;right:1%;width:70px" viewBox="0 0 70 120">
+  <path d="M35 10 Q55 30 45 55 Q35 80 50 110" fill="none" stroke="#7d6e5a" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M45 20 Q55 15 50 28" fill="none" stroke="#7d6e5a" stroke-width="2"/>
+  <path d="M42 40 Q55 35 52 48" fill="none" stroke="#7d6e5a" stroke-width="2"/>
+  <path d="M48 60 Q60 55 57 68" fill="none" stroke="#7d6e5a" stroke-width="2"/>
+</svg>
+
+<svg class="bg-doodle" style="top:60%;left:1.5%;width:80px" viewBox="0 0 80 80">
+  <path d="M10 70 L40 10 L70 70 Z" fill="none" stroke="#7d6e5a" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M25 70 L40 30 L55 70" fill="none" stroke="#7d6e5a" stroke-width="1.5"/>
+</svg>
+
+<!-- NOTEBOOK RINGS -->
+<div class="rings">
+  <div class="ring"></div>
+  <div class="ring"></div>
+  <div class="ring"></div>
+  <div class="ring"></div>
+  <div class="ring"></div>
+  <div class="ring"></div>
+  <div class="ring"></div>
+</div>
+
+<!-- MAIN -->
+<div class="notebook" style="position:relative;z-index:1">
+
+  <!-- ── HEADER ─────────────────────────────────────── -->
+  <header>
+    <!-- Scattered stars -->
+    <span class="doodle-star" style="left:4%;top:0;color:#f9ca24;animation-delay:0s">✦</span>
+    <span class="doodle-star" style="right:6%;top:10px;color:#ff6b6b;font-size:1.1rem;animation-delay:.5s">★</span>
+    <span class="doodle-star" style="left:15%;top:30px;color:#a29bfe;font-size:.9rem;animation-delay:1s">✦</span>
+    <span class="doodle-star" style="right:18%;top:0;color:#55efc4;font-size:.7rem;animation-delay:1.5s">✦</span>
+
+    <div class="brand-tape">
+      <h1>Schedulix</h1>
+      <!-- Handdrawn underline -->
+      <svg class="h1-deco" viewBox="0 0 220 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 12 Q30 4 60 10 Q90 16 120 8 Q150 2 180 10 Q200 15 216 8" stroke="#c0392b" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M10 16 Q50 12 90 15 Q130 18 170 13 Q195 10 212 14" stroke="#c0392b" stroke-width="1" stroke-linecap="round" opacity=".4"/>
+      </svg>
+    </div>
+
+    <p class="subtitle">✏️ Plan your tasks smartly — one sticky note at a time 📋</p>
+  </header>
+
+  <!-- ── GRID ───────────────────────────────────────── -->
+  <div class="grid">
+
+    <!-- FORM CARD -->
+    <div class="paper-card form-card" style="animation-delay:.1s">
+      <div class="form-title">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" fill="#2c2416"/>
+          <path d="M20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="#2c2416"/>
+        </svg>
+        Tugas Baru
+      </div>
+
+      <div class="field">
+        <label>✏️ Nama tugas</label>
+        <input id="taskName" type="text" placeholder="Contoh: Laporan Praktikum..."/>
+      </div>
+
+      <div class="field">
+        <label>📅 Deadline</label>
+        <input id="taskDeadline" type="date"/>
+      </div>
+
+      <div class="field">
+        <label>🔥 Prioritas</label>
+        <select id="taskPriority" class="prio-medium" onchange="updatePrioColor(this)">
+          <option value="low">🟢 Low — santai aja</option>
+          <option value="medium" selected>🟡 Medium — segera dikerjain</option>
+          <option value="high">🔴 High — URGENT!</option>
+        </select>
+      </div>
+
+      <button class="btn-add" id="btnAdd" onclick="addTask()">Add Task</button>
+      <div class="toast" id="toast"></div>
+    </div>
+
+    <!-- TASK LIST PANEL -->
+    <div class="paper-card list-panel" style="animation-delay:.25s">
+      <div class="list-header">
+        <div class="list-title">
+          <!-- doodled checklist icon -->
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;margin-right:4px">
+            <rect x="3" y="3" width="18" height="18" rx="2" stroke="#2c2416" stroke-width="2"/>
+            <path d="M7 12l3 3 7-7" stroke="#c0392b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Daftar Tugas
+        </div>
+        <div class="count-bubble" id="taskCount">0</div>
+      </div>
+      <div id="taskList"></div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="doodle-bar">
+    made with ☕ + ✏️ &nbsp;·&nbsp; Schedulix MVP &nbsp;·&nbsp; Kelompok 17
+  </div>
+
+</div><!-- /notebook -->
+
+<script>
+const API = 'http://localhost:5001';
+
+const DEMO = [
+  {_id:'d1',name:'Laporan Praktikum Technopreneurship',deadline:'2026-04-29',priority:'high',status:'pending'},
+  {_id:'d2',name:'Tugas Kalkulus Bab 5',deadline:'2026-05-03',priority:'medium',status:'pending'},
+  {_id:'d3',name:'Presentasi Kimia Organik',deadline:'2026-05-10',priority:'low',status:'done'},
+  {_id:'d4',name:'Resume Pertemuan 6',deadline:'2026-05-01',priority:'medium',status:'pending'},
+];
+
+let tasks = [];
+let offline = false;
+
+/* sticky note colours by priority */
+const STICKYCOLOR = {high:'high',medium:'medium',low:'low'};
+
+window.onload = () => {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('taskDeadline').value = today;
+  load();
+};
+
+async function load(){
+  try{
+    const r = await fetch(`${API}/tasks`,{signal:AbortSignal.timeout(2500)});
+    tasks = await r.json();
+    offline = false;
+  }catch{
+    offline = true;
+    tasks = [...DEMO];
+    showToast('Mode offline — menampilkan data demo 📖','err');
+  }
+  render();
+}
+
+async function addTask(){
+  const name = document.getElementById('taskName').value.trim();
+  const deadline = document.getElementById('taskDeadline').value;
+  const priority = document.getElementById('taskPriority').value;
+  if(!name||!deadline){showToast('Isi nama & deadline dulu ya~ 🙏','err');return;}
+
+  const btn = document.getElementById('btnAdd');
+  btn.textContent = '✏️ Nyimpen...';
+  btn.style.opacity = '.7';
+  btn.disabled = true;
+
+  const t = {name,deadline,priority,status:'pending'};
+
+  if(offline){
+    tasks.unshift({...t,_id:'_'+Math.random().toString(36).slice(2,8)});
+    showToast('Task ditambah! (offline mode) ✨','ok');
+    reset();render();
+  }else{
+    try{
+      const r = await fetch(`${API}/tasks`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(t)});
+      if(r.ok){showToast('Tersimpan ke database! 🎉','ok');reset();load();}
+      else showToast('Gagal simpan — coba lagi ❌','err');
+    }catch{showToast('Server tidak terhubung 😢','err');}
+  }
+  btn.innerHTML='Add Task';btn.style.opacity='1';btn.disabled=false;
+}
+
+function toggleDone(id){
+  const t=tasks.find(x=>x._id===id);if(!t)return;
+  t.status=t.status==='done'?'pending':'done';
+  if(!offline) fetch(`${API}/tasks/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:t.status})}).catch(()=>{});
+  render();
+}
+
+function del(id){
+  tasks=tasks.filter(x=>x._id!==id);
+  if(!offline) fetch(`${API}/tasks/${id}`,{method:'DELETE'}).catch(()=>{});
+  render();
+}
+
+function render(){
+  const list=document.getElementById('taskList');
+  document.getElementById('taskCount').textContent=tasks.length;
+
+  if(!tasks.length){
+    list.innerHTML=`<div class="empty">
+      <svg width="60" height="60" viewBox="0 0 60 60" fill="none" style="margin:0 auto 10px;display:block">
+        <rect x="10" y="8" width="40" height="44" rx="3" fill="#fdf8f0" stroke="#7d6e5a" stroke-width="2"/>
+        <line x1="18" y1="22" x2="42" y2="22" stroke="#b0a080" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="18" y1="30" x2="36" y2="30" stroke="#b0a080" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="18" y1="38" x2="30" y2="38" stroke="#b0a080" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      Belum ada tugas nih...<br>Yuk tambah task pertama! ✏️
+    </div>`;
+    return;
+  }
+
+  const sorted=[...tasks].sort((a,b)=>{
+    if(a.status!==b.status) return a.status==='done'?1:-1;
+    return new Date(a.deadline)-new Date(b.deadline);
+  });
+
+  list.innerHTML=sorted.map((t,i)=>`
+    <div class="task-sticky ${STICKYCOLOR[t.priority]} ${t.status==='done'?'done':''}"
+         style="animation-delay:${i*.07}s">
+      <div class="task-top">
+        <div class="t-name">${esc(t.name)}</div>
+        <div class="task-actions">
+          <button class="btn-sm" title="${t.status==='done'?'Batalin':'Selesai'}" onclick="toggleDone('${t._id}')">
+            ${t.status==='done'?'↩':'✓'}
+          </button>
+          <button class="btn-sm" title="Hapus" onclick="del('${t._id}')">✕</button>
+        </div>
+      </div>
+      <div class="task-meta">
+        <span class="meta-date">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="4" width="18" height="18" rx="2" stroke="#7d6e5a" stroke-width="2"/>
+            <path d="M16 2v4M8 2v4M3 10h18" stroke="#7d6e5a" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          ${fmtDate(t.deadline)}
+        </span>
+        <span class="prio-tag ${t.priority}">${t.priority}</span>
+        ${isOD(t.deadline,t.status)?'<span class="overdue">⚠ overdue</span>':''}
+        ${t.status==='done'?'<span class="done-tag">✓ selesai</span>':''}
+      </div>
+    </div>`).join('');
+}
+
+function reset(){document.getElementById('taskName').value='';}
+
+function showToast(msg,type){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast '+type;
+  clearTimeout(t._to);t._to=setTimeout(()=>{t.className='toast';},4000);
+}
+
+function updatePrioColor(sel){
+  sel.className='prio-'+sel.value;
+}
+
+function fmtDate(d){
+  if(!d)return'-';
+  return new Date(d+'T00:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
+}
+
+function isOD(d,s){return s!=='done'&&new Date(d)<new Date(new Date().toDateString());}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&e.target.id==='taskName') addTask();
+});
+</script>
+</body>
+</html>
